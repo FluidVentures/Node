@@ -4,25 +4,25 @@
 #include <string.h>
 #include "PString.h"
 
-Enrf24 radio(PA0, PA1, PA2);
+Enrf24 radio(PA0, PA1, PA2); // Set up nRF24L01 radio on SPI bus plus pins
 const uint8_t rxaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x01 };
 void dump_radio_status_to_serialport(uint8_t);
 
 void setup() {
   Serial.begin(9600);
 
-  SPI.begin();
-  SPI.setDataMode(SPI_MODE0);
+  SPI.begin(); //Initialize nRF24L01 radio
+  SPI.setDataMode(SPI_MODE0); //nRF24L01 radio data mode
   SPI.setBitOrder(MSBFIRST);
 
   radio.begin();  // Defaults 1Mbps, channel 0, max TX power
   radio.setRXaddress((void*)rxaddr);
 
-  pinMode(33, OUTPUT);
-  digitalWrite(33, LOW);
+  pinMode(33, OUTPUT); //RX LED
+  digitalWrite(33, LOW); //RX LED
 
   radio.enableRX();  // Start listening
-  delay(2500);
+  delay(2500); // Delay 2.5sec to open serial monitor for viewing
   dump_radio_status_to_serialport(radio.radioState());
 }
 
@@ -63,7 +63,7 @@ void loop() {
 
 
 
-    /* Assemble a sentence of the various parts so that we can calculate the proper checksum
+    /* NMEA RMC definition
 
       $GPRMC,001850.325,V,3754.921,N,08002.494,W,45.8,1.77,180917,,E*49
 
@@ -81,8 +81,11 @@ void loop() {
       9) Date, ddmmyy
       10) Magnetic Variation, degrees
       11) E or W
-      12) Checksum */
+      12) Checksum
+      
+      */
 
+// Create full NMEA sentence
     char nmeabuffer[64];
     PString nmeaSentence(nmeabuffer, sizeof(nmeabuffer));
 
@@ -101,7 +104,7 @@ void loop() {
     nmeaSentence.print("020.3,");     //  10) Magnetic Variation, degrees
     nmeaSentence.print("E");          //  11) E or W
 
-    Serial.println(nmeaSentence);
+    Serial.println(nmeaSentence); 
   }
 
   delay(10);
