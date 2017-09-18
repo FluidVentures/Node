@@ -42,7 +42,7 @@ void loop() {
   while (!radio.available(true))
     ;
   if (radio.read(inbuf)) {
-      digitalWrite(33, HIGH); // RX LED
+    digitalWrite(33, HIGH); // RX LED
 
     Serial.println(inbuf);
 
