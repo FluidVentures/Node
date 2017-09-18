@@ -42,43 +42,25 @@ void loop() {
   while (!radio.available(true))
     ;
   if (radio.read(inbuf)) {
-    digitalWrite(33, HIGH);
-    
+      digitalWrite(33, HIGH); // RX LED
+
     Serial.println(inbuf);
 
     //Move buffer into lat/long arrays
-    for (int i = 0; i <= 1; i++)
+    for (int i = 0; i <= 7; i++)
     {
+      digitalWrite(33, LOW); // RX LED
       gpsLat.print(inbuf[i]);
+      digitalWrite(33, HIGH); // RX LED
     }
 
-    gpsLat.print(inbuf[3]);
-    gpsLat.print(inbuf[4]);
-    gpsLat.print(inbuf[2]);
-
-    for (int i = 5; i <= 7; i++)
+    for (int i = 11; i <= 20; i++)
     {
-      gpsLat.print(inbuf[i]);
-    }
-
-    //$GPRMC,123519,A,4970.0205,N,-123.149174,W,0.0,0.0,180917,020.3,
-
-
-    for (int i = 11; i <= 13; i++)
-    {
+      digitalWrite(33, LOW); // RX LED
       gpsLng.print(inbuf[i]);
-    }
-    for (int i = 15; i <= 16; i++)
-    {
-      gpsLng.print(inbuf[i]);
+      digitalWrite(33, HIGH); // RX LED
     }
 
-    gpsLng.print(inbuf[14]);
-
-    for (int i = 17; i <= 20; i++)
-    {
-      gpsLng.print(inbuf[i]);
-    }
 
 
     /* Assemble a sentence of the various parts so that we can calculate the proper checksum
