@@ -64,7 +64,6 @@ void loop() {
 }
 
 
-
 //**************************************** readSerialString ******************************************
 
 #define RADIO_DATA_PAYLOAD_SIZE 30
