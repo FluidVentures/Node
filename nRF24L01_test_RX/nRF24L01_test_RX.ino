@@ -4,7 +4,7 @@
 #include <string.h>
 #include "PString.h"
 
-Enrf24 radio(PA0, PA1, PA2); // Set up nRF24L01 radio on SPI bus plus pins
+Enrf24 radio(PA0, PA1, PA2); // Set up nRF24L01 radio on SPI bus pins
 const uint8_t rxaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x01 };
 void dump_radio_status_to_serialport(uint8_t);
 

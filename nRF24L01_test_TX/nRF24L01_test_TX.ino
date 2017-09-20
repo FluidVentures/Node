@@ -11,13 +11,21 @@
 Enrf24 radio(PA0, PA1, PA2);
 TinyGPSPlus gps;
 
+const int SERIAL_STRING_SIZE = 128;
+
+char serialString[SERIAL_STRING_SIZE];
+int serialStringSize = 0;
+
 const uint8_t txaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x01 };
 static const uint32_t GPSBaud = 9600;
 void dump_radio_status_to_serialport(uint8_t);
+int printStatus = 0;
 
 void setup() {
   Serial.begin(GPSBaud);
   Serial1.begin(GPSBaud);
+
+  pinMode(33, OUTPUT);
 
   SPI.begin();
   SPI.setDataMode(SPI_MODE0);
@@ -32,42 +40,114 @@ void setup() {
 
 void loop() {
 
-
-  radio.print(gps.location.lat(), 6);
-  radio.print(",");
-  radio.print(gps.location.lng(), 6);
+  if (readSerialString() == 1)
+  {
+    sendStringToRadio();
+    //Serial.print(serialString);
+    digitalWrite(33, !digitalRead(33)); // Turn the LED from off to on, or on to off
+  }
   
+  delay(100);
+  digitalWrite(33, !digitalRead(33)); // Turn the LED from off to on, or on to off
+
+
+  /*
+    if (printStatus == 100)
+    {
+      dump_radio_status_to_serialport(radio.radioState());  // Should report IDLE
+      printStatus = 0;
+    }
+    printStatus++;
+  */
+
+}
+
+
+
+//**************************************** readSerialString ******************************************
+
+#define RADIO_DATA_PAYLOAD_SIZE 30
+#define HEADER_MSG_CHAR  0x01
+#define DATA_MSG_CHAR    0x02
+
+char readSerialString()
+{
+  char tempByte;
+  int index = 0;
+
+  while (Serial1.available() > 0) {
+    tempByte = Serial1.read();
+
+    if (tempByte == '$')
+    {
+      //Serial.println("Found $");
+      index = 0;
+      serialString[index++] = tempByte;
+    }
+    else if (tempByte == '\n')
+    {
+      if (index > 0) {
+        //Serial.println("Found GPS line end");
+        serialString[index++] = tempByte;
+        serialStringSize = index;
+        return 1;
+      }
+      else return -1;
+    }
+    else
+    {
+      serialString[index++] = tempByte;
+      if (index >= SERIAL_STRING_SIZE) return -1;
+    }
+  }
+}
+
+
+
+//**************************************** sendStringToRadio ******************************************
+void sendStringToRadio(void)
+{
+  int msgPacketCount;
+  int msgChecksum;
+  int currentPacketIndex = 0;
+  int currentStringOutputIndex = 0;
+  int i;
+
+  msgPacketCount = serialStringSize / RADIO_DATA_PAYLOAD_SIZE  + 1;
+  msgChecksum = 0;  //TODO calculate this.
+
+  //send header packet
+  radio.print(HEADER_MSG_CHAR);
+  //Serial.print(HEADER_MSG_CHAR);
+
+  radio.print(serialStringSize);
+  //Serial.print(serialStringSize);
+
+  radio.print(msgChecksum, 2);
+  //Serial.print(msgChecksum);
+
+  Serial.println();
   radio.flush();  // Force transmit (don't wait for any more data)
 
 
-  Serial.print(gps.location.rawLat().deg), 4;
-  Serial.print(",");
-  Serial.print(gps.location.lng(), 6);
-  Serial.println();
-
-
-  digitalWrite(33, HIGH);
-  smartDelay(10);
-  digitalWrite(33, LOW);
-
-  //dump_radio_status_to_serialport(radio.radioState());  // Should report IDLE
-  smartDelay(1000);
-
-}
-
-
-// This custom version of delay() ensures that the gps object
-// is being "fed".
-static void smartDelay(unsigned long ms)
-{
-  unsigned long start = millis();
-  do
+  for (currentPacketIndex = 0; currentPacketIndex < msgPacketCount; currentPacketIndex++)
   {
-    while (Serial1.available())
-      gps.encode(Serial1.read());
-  } while (millis() - start < ms);
+    radio.print(DATA_MSG_CHAR);
+    radio.print(currentPacketIndex);
+
+    for (i = 0; i < RADIO_DATA_PAYLOAD_SIZE; i++)
+    {
+      radio.print(serialString[currentStringOutputIndex++]);
+      if (currentStringOutputIndex >= serialStringSize) break;
+    }
+    radio.flush();
+  }
 }
 
+
+
+
+//**************************************** dump_radio_status_to_serialport ******************************************
 void dump_radio_status_to_serialport(uint8_t status)
 {
   Serial.print("Enrf24 radio transceiver status: ");
