@@ -17,7 +17,6 @@
   10) Magnetic Variation, degrees
   11) E or W
   12) Checksum
-
 */
 
 #include <SPI.h>
@@ -60,6 +59,7 @@ void setup() {
 void loop()
 {
   char tempByte[32];
+  char $GPRMC[128];
 
   while (!radio.available(true));
 
@@ -67,27 +67,31 @@ void loop()
   {
     if (tempByte == '$')
     {
-      for (int i = 0; i < 128)
+      for (int i = 0; i < 128) //Start loading the radio Bytes into array one at a time.
       {
-        Serial.print(tempByte);
+        digitalWrite(33, !digitalRead(33)); // Turn the LED from off to on, or on to off
+
+        $GPRMC[i] = tempByte;
+        if (tempByte == / n)
+        {
+          break
+        }
       }
     }
-
-    digitalWrite(33, !digitalRead(33)); // Turn the LED from off to on, or on to off
-
-
   }
+  Serial.print($GPRMC);
 }
+
 
 
 
 //**************************************** Calc Checksum *********************************************
 //****************************************************************************************************
 /*
-An asterisk (*) delimiter and checksum value follow the last field of data contained in an NMEA-0183 message.
-The checksum is the 8-bit exclusive of all characters in the message, including the commas between fields, 
-but not including the $ and asterisk delimiters. The hexadecimal result is converted to two ASCII characters 
-(0–9, A–F). The most significant character appears first.
+  An asterisk (*) delimiter and checksum value follow the last field of data contained in an NMEA-0183 message.
+  The checksum is the 8-bit exclusive of all characters in the message, including the commas between fields,
+  but not including the $ and asterisk delimiters. The hexadecimal result is converted to two ASCII characters
+  (0–9, A–F). The most significant character appears first.
 */
 
 
