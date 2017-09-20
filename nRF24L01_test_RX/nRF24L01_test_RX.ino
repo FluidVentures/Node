@@ -59,16 +59,38 @@ void setup() {
 //****************************************************************************************************
 void loop()
 {
-  char tempByte[128];
+  char tempByte[32];
 
   while (!radio.available(true));
 
   if (radio.read(tempByte))
   {
-    Serial.print(tempByte);
+    if (tempByte == '$')
+    {
+      for (int i = 0; i < 128)
+      {
+        Serial.print(tempByte);
+      }
+    }
+
     digitalWrite(33, !digitalRead(33)); // Turn the LED from off to on, or on to off
+
+
   }
 }
+
+
+
+//**************************************** Calc Checksum *********************************************
+//****************************************************************************************************
+/*
+An asterisk (*) delimiter and checksum value follow the last field of data contained in an NMEA-0183 message.
+The checksum is the 8-bit exclusive of all characters in the message, including the commas between fields, 
+but not including the $ and asterisk delimiters. The hexadecimal result is converted to two ASCII characters 
+(0–9, A–F). The most significant character appears first.
+*/
+
+
 
 //**************************** dump radio status*********************************************
 void dump_radio_status_to_serialport(uint8_t status)

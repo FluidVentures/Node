@@ -183,11 +183,14 @@ void sendStringToRadio(void)
   }
 }
 
-//**************************************** Calc Checksum ***************************
+//**************************************** Calc Checksum *********************************************
 //****************************************************************************************************
-
-
-
+/*
+An asterisk (*) delimiter and checksum value follow the last field of data contained in an NMEA-0183 message.
+The checksum is the 8-bit exclusive of all characters in the message, including the commas between fields, 
+but not including the $ and asterisk delimiters. The hexadecimal result is converted to two ASCII characters 
+(0–9, A–F). The most significant character appears first.
+*/
 
 //**************************************** dump_radio_status_to_serialport ***************************
 //****************************************************************************************************
