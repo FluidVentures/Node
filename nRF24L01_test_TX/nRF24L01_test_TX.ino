@@ -15,6 +15,7 @@ const int SERIAL_STRING_SIZE = 128;
 
 char serialString[SERIAL_STRING_SIZE];
 int serialStringSize = 0;
+static int serialStringIndex = 0;
 
 const uint8_t txaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x01 };
 static const uint32_t GPSBaud = 9600;
@@ -73,7 +74,7 @@ void loop() {
 char readSerialString()
 {
   char tempByte;
-  int index = 0;
+
 
   while (Serial1.available() > 0) {
     tempByte = Serial1.read();
@@ -81,23 +82,23 @@ char readSerialString()
     if (tempByte == '$')
     {
       //Serial.println("Found $");
-      index = 0;
-      serialString[index++] = tempByte;
+      serialStringIndex = 0;
+      serialString[serialStringIndex++] = tempByte;
     }
     else if (tempByte == '\n')
     {
-      if (index > 0) {
+      if (serialStringIndex > 0) {
         //Serial.println("Found GPS line end");
-        serialString[index++] = tempByte;
-        serialStringSize = index;
+        serialString[serialStringIndex++] = tempByte;
+        serialStringSize = serialStringIndex;
         return 1;
       }
       else return -1;
     }
     else
     {
-      serialString[index++] = tempByte;
-      if (index >= SERIAL_STRING_SIZE) return -1;
+      serialString[serialStringIndex++] = tempByte;
+      if (serialStringIndex >= SERIAL_STRING_SIZE) return -1;
     }
   }
 }
