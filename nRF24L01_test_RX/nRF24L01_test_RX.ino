@@ -65,13 +65,14 @@ void loop()
 
   if (radio.read(tempByte))
   {
-    if (tempByte == '$')
+    if (tempByte[0] == '$' && tempByte[1] == 'G' && tempByte[1] == 'P' && tempByte[1] == 'R' && tempByte[1] == 'M' && tempByte[1] == 'C')
     {
       for (int i = 0; i < 128) //Start loading the radio Bytes into array one at a time.
       {
         digitalWrite(33, !digitalRead(33)); // Turn the LED from off to on, or on to off
 
         $GPRMC[i] = tempByte;
+
         if (tempByte == / n)
         {
           break
